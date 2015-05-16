@@ -1,0 +1,62 @@
+<!doctype html>
+
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="foo.css">
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/riot/riot+compiler.min.js"></script>
+    <script src="foo.tag" type="riot/tag"></script>
+</head>
+<body>
+
+<img src="/images/acdc.png" align="right"/>
+
+<foo></foo>
+
+<p>
+    <small>
+        <a href="/dir">Directory</a>
+        <a href="https://github.com/spriet2000/vertx-handlers-http-example">Source</a>
+    </small>
+</p>
+
+<script type="text/javascript">
+
+        var Store = function() {
+            this.post = function(text){
+                var data = {};
+                data.foo = text;
+                $.ajax("/foobar", {
+                    type: "POST",
+                    contentType:"application/json",
+                    data: JSON.stringify(data),
+                    success: function(data){
+                        alert(data);
+                    },
+                    failure: function(err) {
+                       alert(err);
+                    }
+              });
+            }
+        }
+
+        riot.mount('foo', {
+          title: 'Send a foo!',
+          store: new Store()
+        })
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
