@@ -21,17 +21,17 @@ BiConsumer<Object, Throwable> exception = (e, a) -> {
 BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
 
 // common handlers
-Handlers<HttpServerRequest> common = new Handlers<>(
+Handlers<HttpServerRequest, Object> common = new Handlers<>(
          new TimeOutHandler(vertx),
          new ResponseTimeHandler()
 );
 
 // statik serving
-Handlers<HttpServerRequest> statik =  new Handlers<>(
+Handlers<HttpServerRequest, Object> statik =  new Handlers<>(
         new Statik("/app"));
 
 // body parser
-Handlers<HttpServerRequest> bodyParser = new Handlers<>(
+Handlers<HttpServerRequest, Body<FooBar>> bodyParser = new Handlers<>(
         new JsonBodyParser(FooBar.class),
         new FooFormHandler());
 
@@ -43,7 +43,9 @@ router.get("/*filepath", (req, params) -> {
 
 router.post("/foobar", (req, params) -> {
     common.accept(req, null, exception, (event, arg) -> {
-        bodyParser.accept(req, new FooContext(params), exception, success);
+        bodyParser.accept(event, new FooContext(params), exception, (event1, args) -> {
+            success.accept(event1, args);
+        });
     });
 });
 

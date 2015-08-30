@@ -11,6 +11,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 import vertx.handlers.http.examples.foo.ext.bodyParser.impl.JsonBodyParser;
 import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
 
@@ -44,17 +45,17 @@ public class FooVerticle extends AbstractVerticle {
         BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
 
         // common handlers
-        Handlers<HttpServerRequest> common = new Handlers<>(
+        Handlers<HttpServerRequest, Object> common = new Handlers<>(
                  new TimeOutHandler(vertx),
                  new ResponseTimeHandler()
         );
 
         // statik serving
-        Handlers<HttpServerRequest> statik =  new Handlers<>(
+        Handlers<HttpServerRequest, Object> statik =  new Handlers<>(
                 new Statik("/app"));
 
         // body parser
-        Handlers<HttpServerRequest> bodyParser = new Handlers<>(
+        Handlers<HttpServerRequest, Body<FooBar>> bodyParser = new Handlers<>(
                 new JsonBodyParser(FooBar.class),
                 new FooFormHandler());
 
@@ -66,7 +67,9 @@ public class FooVerticle extends AbstractVerticle {
 
         router.post("/foobar", (req, params) -> {
             common.accept(req, null, exception, (event, arg) -> {
-                bodyParser.accept(event, new FooContext(params), exception, success);
+                bodyParser.accept(event, new FooContext(params), exception, (event1, args) -> {
+                    success.accept(event1, args);
+                });
             });
         });
 
