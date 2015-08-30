@@ -4,6 +4,7 @@ import com.github.spriet2000.handlers.Handlers;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ResponseTimeHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.TimeOutHandler;
 import com.github.spriet2000.vertx.httprouter.Router;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
@@ -28,33 +29,45 @@ public class FooVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        // handling
-        BiConsumer<Object, Throwable> exception = (e, a) -> logger.error(a);
-        BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
-
-        // common
-        Handlers<HttpServerRequest> common = new Handlers<>(
-                new TimeOutHandler(vertx), new ResponseTimeHandler());
-
         // configure router
         Router router = router();
 
-        // statik serving
-        Handlers<HttpServerRequest> statik =  new Handlers<>();
-        statik.andThen(new Statik("/app"));
+        // error handling
+        BiConsumer<Object, Throwable> exception = (e, a) -> {
+            ((HttpServerRequest) e).response().setStatusCode(
+                    HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ((HttpServerRequest) e).response().end(a.toString());
+            logger.error(a);
+        };
 
-        router.get("/*filepath", (req, params) -> {
-            common.accept(req, null, exception, success);
-            statik.accept(req, null, exception, success);
-        });
+        // success handling
+        BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
+
+        // common handlers
+        Handlers<HttpServerRequest> common = new Handlers<>(
+                 new TimeOutHandler(vertx),
+                 new ResponseTimeHandler()
+        );
+
+        // statik serving
+        Handlers<HttpServerRequest> statik =  new Handlers<>(
+                new Statik("/app"));
 
         // body parser
-        Handlers<HttpServerRequest> bodyParser = new Handlers<HttpServerRequest>(
-                new JsonBodyParser(FooBar.class), new FooFormHandler());
+        Handlers<HttpServerRequest> bodyParser = new Handlers<>(
+                new JsonBodyParser(FooBar.class),
+                new FooFormHandler());
+
+        router.get("/*filepath", (req, params) -> {
+            common.accept(req, null, exception, (event, arg) -> {
+                statik.accept(event, arg, exception, success);
+            });
+        });
 
         router.post("/foobar", (req, params) -> {
-            common.accept(req, null, exception, success);
-            bodyParser.accept(req, new FooContext(params), exception, success);
+            common.accept(req, null, exception, (event, arg) -> {
+                bodyParser.accept(event, new FooContext(params), exception, success);
+            });
         });
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080))
