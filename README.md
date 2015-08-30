@@ -8,50 +8,36 @@ Static website with simple form processing.
 
 // handling
 BiConsumer<Object, Throwable> exception = (e, a) -> logger.error(a);
-BiConsumer<Object, Object> success = (e, a) -> logger.info(a);
+BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
 
 // common
-RequestHandlers<HttpServerRequest, Object> common =
-        new RequestHandlers<>(exception, success);
-common.andThen(new TimeOutHandler(vertx), new ResponseTimeHandler());
-
-// directory todo
-RequestHandlers<HttpServerRequest, Directory> directory =
-        new RequestHandlers<>(exception, success);
-directory.andThen(new DirectoryHandler(vertx, "/app/dir"));
+Handlers<HttpServerRequest> common = new Handlers<>(
+        new TimeOutHandler(vertx), new ResponseTimeHandler());
 
 // configure router
 Router router = router();
 
-// directory listing
-router.get("/dir/*filepath", (req, params) -> {
-    common.handle(req, null);
-    directory.handle(req, new DirectoryContext());
-});
-
 // statik serving
-RequestHandlers<HttpServerRequest, Object> statik =
-        new RequestHandlers<>(exception, success);
+Handlers<HttpServerRequest> statik =  new Handlers<>();
 statik.andThen(new Statik("/app"));
 
 router.get("/*filepath", (req, params) -> {
-    common.handle(req, null);
-    statik.handle(req, null);
+    common.accept(req, null, exception, success);
+    statik.accept(req, null, exception, success);
 });
 
 // body parser
-RequestHandlers<HttpServerRequest, Body<FooBar>> bodyParser =
-        new RequestHandlers<>(exception, success);
-bodyParser.andThen(new JsonBodyParser(FooBar.class), new FooFormHandler());
+Handlers<HttpServerRequest> bodyParser = new Handlers<HttpServerRequest>(
+        new JsonBodyParser(FooBar.class), new FooFormHandler());
 
 router.post("/foobar", (req, params) -> {
-    common.handle(req, null);
-    bodyParser.handle(req, new FooContext(params));
+    common.accept(req, null, exception, success);
+    bodyParser.accept(req, new FooContext(params), exception, success);
 });
 
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))
         .requestHandler(router)
-        .listen();
+                .listen();
 
 ```
 
