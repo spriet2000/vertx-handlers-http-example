@@ -43,8 +43,8 @@ router.get("/*filepath", (req, params) -> {
 
 router.post("/foobar", (req, params) -> {
     common.accept(req, null, exception, (event, arg) -> {
-        bodyParser.accept(event, new FooContext(params), exception, (event1, args) -> {
-            success.accept(event1, args);
+        bodyParser.accept(event, new FooContext(params), exception, 
+            (event1, args) -> { success.accept(event1, args);
         });
     });
 });
