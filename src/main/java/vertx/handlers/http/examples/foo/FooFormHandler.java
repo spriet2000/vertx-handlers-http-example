@@ -8,7 +8,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class FooFormHandler implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Body<FooBar>>> {
+public class FooFormHandler implements BiFunction<Consumer<Throwable>, Consumer<Object>,
+        BiConsumer<HttpServerRequest, Body<FooBar>>> {
 
     @Override
     public BiConsumer<HttpServerRequest, Body<FooBar>> apply(Consumer<Throwable> fail, Consumer<Object> next) {
