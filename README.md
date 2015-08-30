@@ -5,33 +5,48 @@
 Static website with simple form processing.
 
 ```
-    Router router = router();
-    
-    ServerHandlers common = handlers(new TimeOutHandler(vertx),
-            new ResponseTimeHandler(), new LogHandler())
-            .exceptionHandler(new ErrorHandler());
-    
-    ServerHandlers directory = handlers(common)
-            .then(new DirectoryHandler(vertx, "/app/dir"));
-    
-    router.get("/dir/*filepath", (request, params) -> {
-        directory.handle(request, new DirectoryContext());
-    });
-    
-    ServerHandlers statik = handlers(common)
-            .then(new Statik("/app"));
-    
-    router.get("/*filepath", statik);
-    
-    ServerHandlers foo = handlers(common)
-            .then(new JsonBodyParser(FooBar.class), new FooFormHandler());
-    
-    router.post("/foobar", (request, params) -> {
-        foo.handle(request, new FooContext(params));
-    });
-    
-    vertx.createHttpServer(new HttpServerOptions().setPort(8080))
-            .requestHandler(router).listen();
+// defaults
+BiConsumer<Object, Throwable> exception = (e, a) -> logger.error(a);
+BiConsumer<Object, Object> success = (e, a) -> logger.info(a);
+
+// common
+RequestHandlers<HttpServerRequest, Object> common = new RequestHandlers<>(exception, success);
+common.andThen(new TimeOutHandler(vertx), new ResponseTimeHandler());
+
+// directory todo
+RequestHandlers<HttpServerRequest, Directory> directory = new RequestHandlers<>(exception, success);
+directory.andThen(new DirectoryHandler(vertx, "/app/dir"));
+
+// configure router
+Router router = router();
+
+// directory listing
+router.get("/dir/*filepath", (req, params) -> {
+    common.handle(req, null);
+    directory.handle(req, new DirectoryContext());
+});
+
+// statik serving
+RequestHandlers<HttpServerRequest, Object> statik = new RequestHandlers<>(exception, success);
+statik.andThen(new Statik("/app"));
+
+router.get("/*filepath", (req, params) -> {
+    common.handle(req, null);
+    statik.handle(req, null);
+});
+
+// body parser
+RequestHandlers<HttpServerRequest, Body<FooBar>> bodyParser = new RequestHandlers<>(exception, success);
+bodyParser.andThen(new JsonBodyParser(FooBar.class), new FooFormHandler());
+
+router.post("/foobar", (req, params) -> {
+    common.handle(req, null);
+    bodyParser.handle(req, new FooContext(params));
+});
+
+vertx.createHttpServer(new HttpServerOptions().setPort(8080))
+        .requestHandler(router)
+        .listen();
 
 ```
 

@@ -5,13 +5,13 @@ import vertx.handlers.http.examples.foo.ext.parameters.Parameters;
 
 import java.util.Map;
 
-public class FooContext implements Body<FooBar>, Parameters {
+public class FooContext implements Parameters, Body<FooBar> {
 
-    private final Map<String, Object> parameters;
+    private final Map<String, String> parameters;
+
     private FooBar body;
 
-    public FooContext(Map<String, Object> parameters) {
-
+    public FooContext(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
@@ -28,8 +28,7 @@ public class FooContext implements Body<FooBar>, Parameters {
     }
 
     @Override
-    public Map<String, Object> parameters() {
+    public Map<String, String> parameters() {
         return parameters;
     }
-
 }

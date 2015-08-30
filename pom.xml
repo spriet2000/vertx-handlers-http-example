@@ -22,7 +22,7 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.0</version>
         </dependency>
 
         <dependency>
@@ -30,13 +30,13 @@
             <artifactId>jackson-core</artifactId>
             <version>2.4.3</version>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>com.fasterxml.jackson.dataformat</groupId>
-                    <artifactId>jackson-dataformat-xml</artifactId>
-                    <version>2.5.3</version>
-                </dependency>
-        -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.4.3</version>
+        </dependency>
+
         <dependency>
             <groupId>com.github.spriet2000</groupId>
             <artifactId>vertx-handlers</artifactId>
@@ -55,12 +55,6 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.github.lukehutch</groupId>
-            <artifactId>fast-classpath-scanner</artifactId>
-            <version>1.2.3</version>
-        </dependency>
-
         <!-- For examples scoped to index -->
 
         <dependency>
@@ -73,7 +67,7 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.0</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

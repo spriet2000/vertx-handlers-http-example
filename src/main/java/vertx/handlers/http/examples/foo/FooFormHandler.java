@@ -1,19 +1,22 @@
 package vertx.handlers.http.examples.foo;
 
 
-import com.github.spriet2000.vertx.handlers.http.server.ServerController;
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandler;
-import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
+import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 
-public class FooFormHandler implements ServerController {
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+public class FooFormHandler implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Body<FooBar>>> {
 
     @Override
-    public ServerHandler<FooContext> handle(Handler fail, Handler next) {
-        return (req, res, ctx) -> {
-            res.end(String.format("Result from server. \nParsed body to type %s.\nfoo: %s",
-                    ctx.getClass().getSimpleName(),
-                    ctx.body().foo));
-            next.handle(ctx);
+    public BiConsumer<HttpServerRequest, Body<FooBar>> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+        return (req, arg) -> {
+            req.response().end(String.format("Result from server. \nParsed body to type %s.\nfoo: %s",
+                    arg.getClass().getSimpleName(),
+                    arg.body().foo));
+            next.accept(arg);
         };
     }
 }

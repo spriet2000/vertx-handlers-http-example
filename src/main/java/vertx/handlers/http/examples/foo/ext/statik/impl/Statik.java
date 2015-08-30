@@ -1,13 +1,15 @@
 package vertx.handlers.http.examples.foo.ext.statik.impl;
 
-import com.github.spriet2000.vertx.handlers.http.server.ServerController;
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandler;
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 
 import java.io.File;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
-public class Statik implements ServerController {
+public class Statik implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Object>> {
+
 
     private final String appRoot;
     private String indexPage;
@@ -18,28 +20,31 @@ public class Statik implements ServerController {
     }
 
     @Override
-    public ServerHandler<Object> handle(Handler fail, Handler next) {
-        return (req, res, args) -> {
-            if (req.method() != HttpMethod.GET && req.method() != HttpMethod.HEAD) {
-                next.handle(args);
+    public BiConsumer<HttpServerRequest, Object> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+        return (req, arg) -> {
+            if (req.method() != HttpMethod.GET
+                    && req.method() != HttpMethod.HEAD) {
+                next.accept(arg);
             } else if (req.path().equals("/")) {
-                res.sendFile(String.format("%s%s%s", appRoot, File.separator, indexPage), event -> {
-                    if (event.failed()) {
-                        fail.handle(404);
-                    } else {
-                        next.handle(args);
-                    }
-                });
+                req.response().sendFile(
+                        String.format("%s%s%s", appRoot, File.separator, indexPage), event -> {
+                            if (event.failed()) {
+                                fail.accept(new Exception("404"));
+                            } else {
+                                next.accept(arg);
+                            }
+                        });
             } else if (!req.path().contains("..")) {
-                res.sendFile(String.format("%s%s%s", appRoot, File.separator, req.path()), event -> {
-                    if (event.failed()) {
-                        fail.handle(404);
-                    } else {
-                        next.handle(args);
-                    }
-                });
+                req.response().sendFile(
+                        String.format("%s%s%s", appRoot, File.separator, req.path()), event -> {
+                            if (event.failed()) {
+                                fail.accept(new Exception("404"));
+                            } else {
+                                next.accept(arg);
+                            }
+                        });
             } else {
-                fail.handle(404);
+                fail.accept(new Exception("404"));
             }
         };
     }

@@ -1,23 +1,29 @@
 package vertx.handlers.http.examples.foo;
 
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandlers;
+import com.github.spriet2000.vertx.handlers.http.server.RequestHandlers;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ResponseTimeHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.TimeOutHandler;
 import com.github.spriet2000.vertx.httprouter.Router;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 import vertx.handlers.http.examples.foo.ext.bodyParser.impl.JsonBodyParser;
+import vertx.handlers.http.examples.foo.ext.directory.Directory;
 import vertx.handlers.http.examples.foo.ext.directory.impl.DirectoryContext;
 import vertx.handlers.http.examples.foo.ext.directory.impl.DirectoryHandler;
-import vertx.handlers.http.examples.foo.ext.error.impl.ErrorHandler;
-import vertx.handlers.http.examples.foo.ext.log.impl.LogHandler;
 import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
 
-import static com.github.spriet2000.vertx.handlers.http.server.ServerHandlers.handlers;
+import java.util.function.BiConsumer;
+
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
 public class FooVerticle extends AbstractVerticle {
+
+    Logger logger = LoggerFactory.getLogger(FooVerticle.class);
 
     public static void main(String[] args) {
         Hosting.run(FooVerticle.class, new VertxOptions());
@@ -26,31 +32,48 @@ public class FooVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
+        // defaults
+        BiConsumer<Object, Throwable> exception = (e, a) -> logger.error(a);
+        BiConsumer<Object, Object> success = (e, a) -> logger.info(a);
+
+        // common
+        RequestHandlers<HttpServerRequest, Object> common = new RequestHandlers<>(exception, success);
+        common.andThen(new TimeOutHandler(vertx), new ResponseTimeHandler());
+
+        // directory todo
+        RequestHandlers<HttpServerRequest, Directory> directory = new RequestHandlers<>(exception, success);
+        directory.andThen(new DirectoryHandler(vertx, "/app/dir"));
+
+        // configure router
         Router router = router();
 
-        ServerHandlers common = handlers(new TimeOutHandler(vertx),
-                new ResponseTimeHandler(), new LogHandler())
-                .exceptionHandler(new ErrorHandler());
-
-        ServerHandlers directory = handlers(common)
-                .then(new DirectoryHandler(vertx, "/app/dir"));
-
-        router.get("/dir/*filepath", (request, params) -> {
-            directory.handle(request, new DirectoryContext());
+        // directory listing
+        router.get("/dir/*filepath", (req, params) -> {
+            common.handle(req, null);
+            directory.handle(req, new DirectoryContext());
         });
 
-        ServerHandlers statik = handlers(common).then(new Statik("/app"));
+        // statik serving
+        RequestHandlers<HttpServerRequest, Object> statik = new RequestHandlers<>(exception, success);
+        statik.andThen(new Statik("/app"));
 
-        router.get("/*filepath", statik);
+        router.get("/*filepath", (req, params) -> {
+            common.handle(req, null);
+            statik.handle(req, null);
+        });
 
-        ServerHandlers foo = handlers(common)
-                .then(new JsonBodyParser(FooBar.class),  new FooFormHandler());
+        // body parser
+        RequestHandlers<HttpServerRequest, Body<FooBar>> bodyParser = new RequestHandlers<>(exception, success);
+        bodyParser.andThen(new JsonBodyParser(FooBar.class), new FooFormHandler());
 
-        router.post("/foobar", (request, params) -> {
-            foo.handle(request, new FooContext(params));
+        router.post("/foobar", (req, params) -> {
+            common.handle(req, null);
+            bodyParser.handle(req, new FooContext(params));
         });
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080))
-                .requestHandler(router).listen();
+                .requestHandler(router)
+                .listen();
+
     }
 }

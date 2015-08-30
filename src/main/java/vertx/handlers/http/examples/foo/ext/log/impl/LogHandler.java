@@ -1,38 +1,40 @@
 package vertx.handlers.http.examples.foo.ext.log.impl;
 
-import com.github.spriet2000.vertx.handlers.http.server.ServerController;
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandler;
-import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.core.logging.LoggerFactory;
 
-public class LogHandler implements ServerController {
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+public class LogHandler implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Object>> {
 
     Logger logger = LoggerFactory.getLogger(LogHandler.class);
 
     @Override
-    public ServerHandler<Object> handle(Handler fail, Handler next) {
-        return (req, res, args) -> {
+    public BiConsumer<HttpServerRequest, Object> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+        return (req, arg) -> {
             StringBuilder builder = new StringBuilder();
             builder.append(String.format("Uri %s %s \n", req.uri(), req.method()));
-            if (args != null) {
-                builder.append(String.format("Args %s \n", args.getClass().getSimpleName()));
-            } else {
-                builder.append("Args NULL \n");
-            }
             builder.append("Request \n");
-            req.headers().entries().forEach(e ->
+            req.response().headers().entries().forEach(e ->
                     builder.append(String.format("- hdr %s : %s \n",
                             e.getKey(), e.getValue())));
-            res.headersEndHandler(x -> {
+            req.response().headersEndHandler(x -> {
                 builder.append("Response \n");
-                res.headers().entries().forEach(e ->
-                        builder.append(String.format("- hdr %s : %s \n",
-                                e.getKey(), e.getValue())));
-                builder.append(res.getStatusCode());
+                if (!req.response().headWritten()) {
+
+                    /*
+                    req.response().headers().entries().forEach(e ->
+                            builder.append(String.format("- hdr %s : %s \n",
+                                    e.getKey(), e.getValue())));
+                    */
+                    builder.append(req.response().getStatusCode());
+                }
                 logger.info(builder.toString());
             });
-            next.handle(args);
+            next.accept(arg);
         };
     }
 }

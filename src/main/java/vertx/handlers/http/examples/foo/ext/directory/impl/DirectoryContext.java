@@ -7,10 +7,11 @@ import java.util.List;
 
 public class DirectoryContext implements Directory {
 
-    private List<String> contents = new ArrayList<>();
+    private final List<String> contents = new ArrayList<>();
 
     @Override
     public List<String> contents() {
         return contents;
     }
+
 }

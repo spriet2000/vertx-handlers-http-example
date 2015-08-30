@@ -1,47 +1,46 @@
 package vertx.handlers.http.examples.foo.ext.bodyParser.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.spriet2000.vertx.handlers.http.server.ServerController;
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandler;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
-@SuppressWarnings("unchecked")
-public class JsonBodyParser<T extends Body> implements ServerController {
+public class JsonBodyParser<T> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Body>> {
 
-    private final Class<Object> clazz;
+    private final Class<T> clazz;
 
-    public JsonBodyParser(Class<Object> clazz) {
+    public JsonBodyParser(Class<T> clazz) {
         this.clazz = clazz;
     }
 
     @Override
-    public ServerHandler<T> handle(Handler fail, Handler next) {
-        return (req, res, args) -> {
-            if (!req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
-                next.handle(args);
+    public BiConsumer<HttpServerRequest, Body> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+        return (req, arg) -> {
+           if (!req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
+                next.accept(arg);
                 return;
             }
             if (req.method() == HttpMethod.GET
-                    || req.method() == HttpMethod.HEAD
-                    || args == null) {
-                next.handle(args);
+                    || req.method() == HttpMethod.HEAD) {
+                next.accept(arg);
             } else {
                 Buffer body = Buffer.buffer();
                 req.handler(body::appendBuffer);
                 req.endHandler(e -> {
                     ObjectMapper mapper = new ObjectMapper();
                     try {
-                        Object result = mapper.readValue(body.toString(), clazz);
-                        ((T) args).body(result);
-                        next.handle(args);
-
+                        String input = body.toString();
+                        T result = mapper.readValue(input, clazz);
+                        arg.body(result);
+                        next.accept(arg);
                     } catch (Exception exception) {
-                        fail.handle(exception);
+                        fail.accept(exception);
                     }
                 });
             }

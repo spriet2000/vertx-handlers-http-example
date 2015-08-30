@@ -1,12 +1,14 @@
 package vertx.handlers.http.examples.foo.ext.directory.impl;
 
-import com.github.spriet2000.vertx.handlers.http.server.ServerController;
-import com.github.spriet2000.vertx.handlers.http.server.ServerHandler;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 import vertx.handlers.http.examples.foo.ext.directory.Directory;
 
-public class DirectoryHandler implements ServerController {
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+public class DirectoryHandler implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Directory>> {
 
     private final DirectoryReader reader;
     private final DirectoryWriter writer;
@@ -17,9 +19,7 @@ public class DirectoryHandler implements ServerController {
     }
 
     @Override
-    public ServerHandler<Directory> handle(Handler fail, Handler next) {
-        return (req, res, args) -> reader.handle(fail,
-                o -> writer.handle(fail, next)
-                        .handle(req, res, args)).handle(req, res, args);
+    public BiConsumer<HttpServerRequest, Directory> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+        return (req, arg) -> reader.apply(fail, o -> writer.apply(fail, next)).accept(req, new DirectoryContext());
     }
 }
