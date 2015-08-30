@@ -4,17 +4,20 @@
 
 Static website with simple form processing.
 
-```
-// defaults
+``` java
+
+// handling
 BiConsumer<Object, Throwable> exception = (e, a) -> logger.error(a);
 BiConsumer<Object, Object> success = (e, a) -> logger.info(a);
 
 // common
-RequestHandlers<HttpServerRequest, Object> common = new RequestHandlers<>(exception, success);
+RequestHandlers<HttpServerRequest, Object> common =
+        new RequestHandlers<>(exception, success);
 common.andThen(new TimeOutHandler(vertx), new ResponseTimeHandler());
 
 // directory todo
-RequestHandlers<HttpServerRequest, Directory> directory = new RequestHandlers<>(exception, success);
+RequestHandlers<HttpServerRequest, Directory> directory =
+        new RequestHandlers<>(exception, success);
 directory.andThen(new DirectoryHandler(vertx, "/app/dir"));
 
 // configure router
@@ -27,7 +30,8 @@ router.get("/dir/*filepath", (req, params) -> {
 });
 
 // statik serving
-RequestHandlers<HttpServerRequest, Object> statik = new RequestHandlers<>(exception, success);
+RequestHandlers<HttpServerRequest, Object> statik =
+        new RequestHandlers<>(exception, success);
 statik.andThen(new Statik("/app"));
 
 router.get("/*filepath", (req, params) -> {
@@ -36,7 +40,8 @@ router.get("/*filepath", (req, params) -> {
 });
 
 // body parser
-RequestHandlers<HttpServerRequest, Body<FooBar>> bodyParser = new RequestHandlers<>(exception, success);
+RequestHandlers<HttpServerRequest, Body<FooBar>> bodyParser =
+        new RequestHandlers<>(exception, success);
 bodyParser.andThen(new JsonBodyParser(FooBar.class), new FooFormHandler());
 
 router.post("/foobar", (req, params) -> {
