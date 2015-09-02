@@ -12,8 +12,8 @@ Router router = router();
 // error handling
 BiConsumer<HttpServerRequest, Throwable> exception = (e, a) -> {
     e.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-    e.response().end(a.toString());
-    logger.error(a);
+    e.response().end(e.toString());
+    logger.error(e);
 };
 
 // success handling
