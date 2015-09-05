@@ -8,7 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class Statik implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Object>> {
+public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, A>> {
 
 
     private final String appRoot;
@@ -20,7 +20,7 @@ public class Statik implements BiFunction<Consumer<Throwable>, Consumer<Object>,
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, Object> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<Object> next) {
         return (req, arg) -> {
             if (req.method() != HttpMethod.GET
                     && req.method() != HttpMethod.HEAD) {

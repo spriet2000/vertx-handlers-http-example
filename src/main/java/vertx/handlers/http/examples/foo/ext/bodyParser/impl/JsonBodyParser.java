@@ -22,7 +22,8 @@ public class JsonBodyParser<T> implements BiFunction<Consumer<Throwable>, Consum
     @Override
     public BiConsumer<HttpServerRequest, Body> apply(Consumer<Throwable> fail, Consumer<Object> next) {
         return (req, arg) -> {
-           if (!req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
+           if (req.headers().contains(HttpHeaders.Names.CONTENT_TYPE)
+                   && !req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
                 next.accept(arg);
                 return;
             }

@@ -6,46 +6,29 @@ Static website with simple form processing.
 
 ``` java
 
-// configure router
 Router router = router();
 
-// error handling
-BiConsumer<HttpServerRequest, Throwable> exception = (e, a) -> {
-    e.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-    e.response().end(a.toString());
-    logger.error(a);
-};
+Handlers<HttpServerRequest, FooContext> common = compose(
+        new ExceptionHandler(),
+        new TimeOutHandler(vertx),
+        new ResponseTimeHandler());
 
-// success handling
-BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
-
-// common handlers
-Handlers<HttpServerRequest, Object> common = new Handlers<>(
-         new TimeOutHandler(vertx),
-         new ResponseTimeHandler()
-);
-
-// statik serving
-Handlers<HttpServerRequest, Object> statik =  new Handlers<>(
-        new Statik("/app"));
-
-// body parser
-Handlers<HttpServerRequest, Body<FooBar>> bodyParser = new Handlers<>(
-        new JsonBodyParser(FooBar.class),
-        new FooFormHandler());
+Handlers.Composition statik = compose(common)
+        .andThen(new Statik("/app"))
+        .exceptionHandler(new ErrorHandler())
+        .successHandler((e, a) -> logger.info(a));
 
 router.get("/*filepath", (req, params) -> {
-    common.accept(req, null, exception, (event, arg) -> {
-        statik.accept(event, arg, exception, success);
-    });
+    statik.accept(req, null);
 });
 
+Handlers.Composition<HttpServerRequest, FooContext> bodyParser = compose(common)
+        .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
+        .exceptionHandler(new ErrorHandler())
+        .successHandler((e, a) -> logger.info(a));
+
 router.post("/foobar", (req, params) -> {
-    common.accept(req, null, exception, (event, arg) -> {
-        bodyParser.accept(event, new FooContext(params), exception, (e, a) -> {
-            success.accept(e, a);
-        });
-    });
+    bodyParser.accept(req, new FooContext(params));
 });
 
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))

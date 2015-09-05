@@ -1,22 +1,21 @@
 package vertx.handlers.http.examples.foo;
 
 import com.github.spriet2000.handlers.Handlers;
+import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ExceptionHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ResponseTimeHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.TimeOutHandler;
 import com.github.spriet2000.vertx.httprouter.Router;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 import vertx.handlers.http.examples.foo.ext.bodyParser.impl.JsonBodyParser;
+import vertx.handlers.http.examples.foo.ext.error.impl.ErrorHandler;
 import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
 
-import java.util.function.BiConsumer;
-
+import static com.github.spriet2000.handlers.Handlers.compose;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
 public class FooVerticle extends AbstractVerticle {
@@ -30,46 +29,29 @@ public class FooVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        // configure router
         Router router = router();
 
-        // error handling
-        BiConsumer<HttpServerRequest, Throwable> exception = (e, a) -> {
-            e.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-            e.response().end(a.toString());
-            logger.error(a);
-        };
+        Handlers<HttpServerRequest, FooContext> common = compose(
+                new ExceptionHandler(),
+                new TimeOutHandler(vertx),
+                new ResponseTimeHandler());
 
-        // success handling
-        BiConsumer<HttpServerRequest, Object> success = (e, a) -> logger.info(a);
-
-        // common handlers
-        Handlers<HttpServerRequest, Object> common = new Handlers<>(
-                 new TimeOutHandler(vertx),
-                 new ResponseTimeHandler()
-        );
-
-        // statik serving
-        Handlers<HttpServerRequest, Object> statik =  new Handlers<>(
-                new Statik("/app"));
-
-        // body parser
-        Handlers<HttpServerRequest, Body<FooBar>> bodyParser = new Handlers<>(
-                new JsonBodyParser(FooBar.class),
-                new FooFormHandler());
+        Handlers.Composition statik = compose(common)
+                .andThen(new Statik("/app"))
+                .exceptionHandler(new ErrorHandler())
+                .successHandler((e, a) -> logger.info(a));
 
         router.get("/*filepath", (req, params) -> {
-            common.accept(req, null, exception, (event, arg) -> {
-                statik.accept(event, arg, exception, success);
-            });
+            statik.accept(req, null);
         });
 
+        Handlers.Composition<HttpServerRequest, FooContext> bodyParser = compose(common)
+                .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
+                .exceptionHandler(new ErrorHandler())
+                .successHandler((e, a) -> logger.info(a));
+
         router.post("/foobar", (req, params) -> {
-            common.accept(req, null, exception, (event, arg) -> {
-                bodyParser.accept(event, new FooContext(params), exception, (e, a) -> {
-                    success.accept(e, a);
-                });
-            });
+            bodyParser.accept(req, new FooContext(params));
         });
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080))
@@ -77,4 +59,5 @@ public class FooVerticle extends AbstractVerticle {
                 .listen();
 
     }
+
 }
