@@ -11,19 +11,19 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class JsonBodyParser<T> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, Body>> {
+public class JsonBodyParser<A extends Body> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, A>> {
 
-    private final Class<T> clazz;
+    private final Class clazz;
 
-    public JsonBodyParser(Class<T> clazz) {
+    public JsonBodyParser(Class clazz) {
         this.clazz = clazz;
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, Body> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<Object> next) {
         return (req, arg) -> {
-           if (req.headers().contains(HttpHeaders.Names.CONTENT_TYPE)
-                   && !req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
+            if (req.headers().contains(HttpHeaders.Names.CONTENT_TYPE)
+                    && !req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
                 next.accept(arg);
                 return;
             }
@@ -37,7 +37,7 @@ public class JsonBodyParser<T> implements BiFunction<Consumer<Throwable>, Consum
                     ObjectMapper mapper = new ObjectMapper();
                     try {
                         String input = body.toString();
-                        T result = mapper.readValue(input, clazz);
+                        Object result = mapper.readValue(input, clazz);
                         arg.body(result);
                         next.accept(arg);
                     } catch (Exception exception) {

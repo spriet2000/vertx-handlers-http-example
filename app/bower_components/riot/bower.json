@@ -7,7 +7,9 @@
     "type": "git",
     "url": "git://github.com/muut/riotjs.git"
   },
-  "authors": ["Muut, Inc. and other contributors"],
+  "authors": [
+    "Muut, Inc. and other contributors"
+  ],
   "license": "MIT",
   "keywords": [
     "custom tags",

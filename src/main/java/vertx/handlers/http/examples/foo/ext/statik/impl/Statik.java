@@ -8,7 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, A>> {
+public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, BiConsumer<HttpServerRequest, A>> {
 
 
     private final String appRoot;
@@ -20,25 +20,28 @@ public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<Objec
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<A> next) {
         return (req, arg) -> {
             if (req.method() != HttpMethod.GET
                     && req.method() != HttpMethod.HEAD) {
                 next.accept(arg);
             } else if (req.path().equals("/")) {
+
                 req.response().sendFile(
                         String.format("%s%s%s", appRoot, File.separator, indexPage), event -> {
                             if (event.failed()) {
-                                fail.accept(new Exception("404"));
+                                //fail.accept(event.cause());
+                                req.response().end("TEST");
                             } else {
                                 next.accept(arg);
                             }
                         });
             } else if (!req.path().contains("..")) {
-                req.response().sendFile(
-                        String.format("%s%s%s", appRoot, File.separator, req.path()), event -> {
+                String filePath = String.format("%s%s%s", appRoot, File.separator, req.path());
+                        req.response().sendFile(filePath, event -> {
                             if (event.failed()) {
-                                fail.accept(new Exception("404"));
+                                //fail.accept(event.cause());
+                                req.response().end("TEST");
                             } else {
                                 next.accept(arg);
                             }

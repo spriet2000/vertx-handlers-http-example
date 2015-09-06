@@ -16,7 +16,7 @@ public class FooFormHandler<A> implements BiFunction<Consumer<Throwable>, Consum
             req.response().end(String.format("Result from server. \nParsed body to type %s.\nfoo: %s",
                     arg.getClass().getSimpleName(),
                     arg.body().foo));
-                    next.accept(arg);
+            next.accept(arg);
         };
     }
 }
