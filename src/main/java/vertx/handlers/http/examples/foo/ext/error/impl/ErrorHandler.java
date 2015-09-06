@@ -19,10 +19,11 @@ public class ErrorHandler implements BiConsumer<HttpServerRequest, Throwable> {
                 throwable.toString(),
                 request.response().ended());
 
+        String html = String.format("<html><head></head><body>%s</body></html>", message);
+
         request.response().headers().set(HttpHeaders.CONTENT_TYPE, "text/html");
         request.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-        request.response().write(String.format("<html><head></head><body>%s</body></html>", message));
-        request.response().end();
+        request.response().end(html);
 
         logger.error(message);
     }
