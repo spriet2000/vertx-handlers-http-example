@@ -18,7 +18,6 @@ import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
 import static com.github.spriet2000.handlers.Handlers.compose;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
-@SuppressWarnings("unchecked")
 public class FooVerticle extends AbstractVerticle {
 
     Logger logger = LoggerFactory.getLogger(FooVerticle.class);
@@ -33,9 +32,9 @@ public class FooVerticle extends AbstractVerticle {
         Router router = router();
 
         Handlers<HttpServerRequest, FooContext> common = compose(
-                new ExceptionHandler(),
-                new TimeOutHandler(vertx),
-                new ResponseTimeHandler());
+                new ExceptionHandler<>(),
+                new TimeOutHandler<>(vertx),
+                new ResponseTimeHandler<>());
 
         Handlers.Composition<HttpServerRequest, FooContext> statik = new Handlers.Composition<>(common)
                 .andThen(new Statik("/app"))
@@ -54,7 +53,6 @@ public class FooVerticle extends AbstractVerticle {
         router.post("/foobar", (req, params) -> {
             bodyParser.accept(req, new FooContext(params));
         });
-
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080))
                 .requestHandler(router).listen();

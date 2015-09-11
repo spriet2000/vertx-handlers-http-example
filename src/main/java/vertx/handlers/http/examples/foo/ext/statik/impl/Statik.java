@@ -30,8 +30,7 @@ public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, B
                 req.response().sendFile(
                         String.format("%s%s%s", appRoot, File.separator, indexPage), event -> {
                             if (event.failed()) {
-                                //fail.accept(event.cause());
-                                req.response().end("TEST");
+                                fail.accept(event.cause());
                             } else {
                                 next.accept(arg);
                             }
@@ -40,8 +39,7 @@ public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, B
                 String filePath = String.format("%s%s%s", appRoot, File.separator, req.path());
                         req.response().sendFile(filePath, event -> {
                             if (event.failed()) {
-                                //fail.accept(event.cause());
-                                req.response().end("TEST");
+                                fail.accept(event.cause());
                             } else {
                                 next.accept(arg);
                             }

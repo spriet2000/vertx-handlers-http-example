@@ -23,7 +23,7 @@ public class ErrorHandler implements BiConsumer<HttpServerRequest, Throwable> {
 
         request.response().headers().set(HttpHeaders.CONTENT_TYPE, "text/html");
         request.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-        request.response().end("TEST");
+        request.response().end(html);
 
         logger.error(message);
     }
