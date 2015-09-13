@@ -6,7 +6,7 @@ import io.vertx.core.VertxOptions;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
-public final class Hosting {
+public final class Runner {
 
     public static void run(Class clazz, VertxOptions options) {
         run(Paths.get("").toAbsolutePath().toString(), clazz.getName(), options);

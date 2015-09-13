@@ -37,13 +37,13 @@ public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, B
                         });
             } else if (!req.path().contains("..")) {
                 String filePath = String.format("%s%s%s", appRoot, File.separator, req.path());
-                        req.response().sendFile(filePath, event -> {
-                            if (event.failed()) {
-                                fail.accept(event.cause());
-                            } else {
-                                next.accept(arg);
-                            }
-                        });
+                req.response().sendFile(filePath, event -> {
+                    if (event.failed()) {
+                        fail.accept(event.cause());
+                    } else {
+                        next.accept(arg);
+                    }
+                });
             } else {
                 fail.accept(new Exception("404"));
             }

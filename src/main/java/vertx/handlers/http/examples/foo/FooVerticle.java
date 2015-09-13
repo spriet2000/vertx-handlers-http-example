@@ -13,7 +13,9 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import vertx.handlers.http.examples.foo.ext.bodyParser.impl.JsonBodyParser;
 import vertx.handlers.http.examples.foo.ext.error.impl.ErrorHandler;
+import vertx.handlers.http.examples.foo.ext.log.impl.LogHandler;
 import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
+import vertx.handlers.http.examples.foo.ext.success.impl.SuccessHandler;
 
 import static com.github.spriet2000.handlers.Handlers.compose;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
@@ -23,7 +25,7 @@ public class FooVerticle extends AbstractVerticle {
     Logger logger = LoggerFactory.getLogger(FooVerticle.class);
 
     public static void main(String[] args) {
-        Hosting.run(FooVerticle.class, new VertxOptions());
+        Runner.run(FooVerticle.class, new VertxOptions());
     }
 
     @Override
@@ -34,12 +36,13 @@ public class FooVerticle extends AbstractVerticle {
         Handlers<HttpServerRequest, FooContext> common = compose(
                 new ExceptionHandler<>(),
                 new TimeOutHandler<>(vertx),
+                new LogHandler<>(),
                 new ResponseTimeHandler<>());
 
         Handlers.Composition<HttpServerRequest, FooContext> statik = new Handlers.Composition<>(common)
                 .andThen(new Statik("/app"))
                 .exceptionHandler(new ErrorHandler())
-                .successHandler((e, a) -> logger.info(a));
+                .successHandler(new SuccessHandler<>());
 
         router.get("/*filepath", (req, params) -> {
             statik.accept(req, null);
@@ -48,7 +51,7 @@ public class FooVerticle extends AbstractVerticle {
         Handlers.Composition<HttpServerRequest, FooContext> bodyParser = compose(common)
                 .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
                 .exceptionHandler(new ErrorHandler())
-                .successHandler((e, a) -> logger.info(a));
+                .successHandler(new SuccessHandler<>());
 
         router.post("/foobar", (req, params) -> {
             bodyParser.accept(req, new FooContext(params));
