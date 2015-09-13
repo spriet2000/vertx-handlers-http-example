@@ -14,20 +14,17 @@ Handlers<HttpServerRequest, FooContext> common = compose(
         new LogHandler<>(),
         new ResponseTimeHandler<>());
 
-Handlers.Composition<HttpServerRequest, FooContext> statik = 
-        new Handlers.Composition<>(common)
-                .andThen(new Statik("/app"))
-                .exceptionHandler(new ErrorHandler())
-                .successHandler(new SuccessHandler<>());
+BiConsumer<HttpServerRequest, FooContext> statik = new Handlers<>(common)
+        .andThen(new Statik("/app"))
+        .apply(new ErrorHandler(), new SuccessHandler<>());
 
 router.get("/*filepath", (req, params) -> {
     statik.accept(req, null);
 });
 
-Handlers.Composition<HttpServerRequest, FooContext> bodyParser = compose(common)
+BiConsumer<HttpServerRequest, FooContext> bodyParser = compose(common)
         .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
-        .exceptionHandler(new ErrorHandler())
-        .successHandler(new SuccessHandler<>());
+        .apply(new ErrorHandler(), new SuccessHandler<>());
 
 router.post("/foobar", (req, params) -> {
     bodyParser.accept(req, new FooContext(params));
