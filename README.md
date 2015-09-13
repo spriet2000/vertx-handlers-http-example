@@ -9,14 +9,16 @@ Static website with simple form processing.
 Router router = router();
 
 Handlers<HttpServerRequest, FooContext> common = compose(
-        new ExceptionHandler(),
-        new TimeOutHandler(vertx),
-        new ResponseTimeHandler());
+        new ExceptionHandler<>(),
+        new TimeOutHandler<>(vertx),
+        new LogHandler<>(),
+        new ResponseTimeHandler<>());
 
-Handlers.Composition statik = compose(common)
-        .andThen(new Statik("/app"))
-        .exceptionHandler(new ErrorHandler())
-        .successHandler((e, a) -> logger.info(a));
+Handlers.Composition<HttpServerRequest, FooContext> statik = 
+        new Handlers.Composition<>(common)
+                .andThen(new Statik("/app"))
+                .exceptionHandler(new ErrorHandler())
+                .successHandler(new SuccessHandler<>());
 
 router.get("/*filepath", (req, params) -> {
     statik.accept(req, null);
@@ -25,16 +27,15 @@ router.get("/*filepath", (req, params) -> {
 Handlers.Composition<HttpServerRequest, FooContext> bodyParser = compose(common)
         .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
         .exceptionHandler(new ErrorHandler())
-        .successHandler((e, a) -> logger.info(a));
+        .successHandler(new SuccessHandler<>());
 
 router.post("/foobar", (req, params) -> {
     bodyParser.accept(req, new FooContext(params));
 });
 
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))
-        .requestHandler(router)
-        .listen();
-
+        .requestHandler(router).listen();
+                
 ```
 
 ### Running the example
