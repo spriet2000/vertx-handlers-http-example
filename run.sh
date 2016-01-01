@@ -1,1 +1,0 @@
-nohup java -jar target/vertx-handlers-http-example-0.0.1-SNAPSHOT-fat.jar &
