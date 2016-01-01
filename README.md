@@ -8,13 +8,13 @@ Static website with simple form processing.
 
 Router router = router();
 
-Handlers<HttpServerRequest, FooContext> common = compose(
+BiHandlers<HttpServerRequest, FooContext> common = compose(
         new ExceptionHandler<>(),
         new TimeOutHandler<>(vertx),
         new LogHandler<>(),
         new ResponseTimeHandler<>());
 
-BiConsumer<HttpServerRequest, FooContext> statik = new Handlers<>(common)
+BiConsumer<HttpServerRequest, FooContext> statik = new BiHandlers<>(common)
         .andThen(new Statik("/app"))
         .apply(new ErrorHandler(), new SuccessHandler<>());
 
