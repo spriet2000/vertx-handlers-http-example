@@ -9,9 +9,9 @@ import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
-public class JsonBodyParser<A extends Body> implements BiFunction<Consumer<Throwable>, Consumer<Object>, BiConsumer<HttpServerRequest, A>> {
+public class JsonBodyParser<A extends Body> implements
+        BiFunction<BiConsumer<HttpServerRequest, Throwable>, BiConsumer<HttpServerRequest, A>, BiConsumer<HttpServerRequest, A>> {
 
     private final Class clazz;
 
@@ -20,16 +20,17 @@ public class JsonBodyParser<A extends Body> implements BiFunction<Consumer<Throw
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<Object> next) {
+    public BiConsumer<HttpServerRequest, A> apply(BiConsumer<HttpServerRequest, Throwable> fail,
+                                                  BiConsumer<HttpServerRequest, A> next) {
         return (req, arg) -> {
             if (req.headers().contains(HttpHeaders.Names.CONTENT_TYPE)
                     && !req.headers().get(HttpHeaders.Names.CONTENT_TYPE).equals("application/json")) {
-                next.accept(arg);
+                next.accept(req, arg);
                 return;
             }
             if (req.method() == HttpMethod.GET
                     || req.method() == HttpMethod.HEAD) {
-                next.accept(arg);
+                next.accept(req, arg);
             } else {
                 Buffer body = Buffer.buffer();
                 req.handler(body::appendBuffer);
@@ -39,9 +40,9 @@ public class JsonBodyParser<A extends Body> implements BiFunction<Consumer<Throw
                         String input = body.toString();
                         Object result = mapper.readValue(input, clazz);
                         arg.body(result);
-                        next.accept(arg);
+                        next.accept(req, arg);
                     } catch (Exception exception) {
-                        fail.accept(exception);
+                        fail.accept(req, exception);
                     }
                 });
             }

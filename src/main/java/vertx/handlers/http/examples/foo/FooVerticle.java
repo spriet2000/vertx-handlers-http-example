@@ -1,6 +1,6 @@
 package vertx.handlers.http.examples.foo;
 
-import com.github.spriet2000.handlers.Handlers;
+import com.github.spriet2000.handlers.BiHandlers;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ExceptionHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ResponseTimeHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.TimeOutHandler;
@@ -17,7 +17,7 @@ import vertx.handlers.http.examples.foo.ext.success.impl.SuccessHandler;
 
 import java.util.function.BiConsumer;
 
-import static com.github.spriet2000.handlers.Handlers.compose;
+import static com.github.spriet2000.handlers.BiHandlers.compose;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
 public class FooVerticle extends AbstractVerticle {
@@ -31,13 +31,13 @@ public class FooVerticle extends AbstractVerticle {
 
         Router router = router();
 
-        Handlers<HttpServerRequest, FooContext> common = compose(
+        BiHandlers<HttpServerRequest, FooContext> common = compose(
                 new ExceptionHandler<>(),
                 new TimeOutHandler<>(vertx),
                 new LogHandler<>(),
                 new ResponseTimeHandler<>());
 
-        BiConsumer<HttpServerRequest, FooContext> statik = new Handlers<>(common)
+        BiConsumer<HttpServerRequest, FooContext> statik = new BiHandlers<>(common)
                 .andThen(new Statik("/app"))
                 .apply(new ErrorHandler(), new SuccessHandler<>());
 

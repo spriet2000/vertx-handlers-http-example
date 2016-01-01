@@ -6,9 +6,9 @@ import io.vertx.core.http.HttpServerRequest;
 import java.io.File;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
-public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, BiConsumer<HttpServerRequest, A>> {
+public class Statik<A> implements
+        BiFunction<BiConsumer<HttpServerRequest, Throwable>, BiConsumer<HttpServerRequest, A>, BiConsumer<HttpServerRequest, A>> {
 
 
     private final String appRoot;
@@ -20,32 +20,33 @@ public class Statik<A> implements BiFunction<Consumer<Throwable>, Consumer<A>, B
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, A> apply(Consumer<Throwable> fail, Consumer<A> next) {
+    public BiConsumer<HttpServerRequest, A> apply(BiConsumer<HttpServerRequest, Throwable> fail,
+                                                  BiConsumer<HttpServerRequest, A> next) {
         return (req, arg) -> {
             if (req.method() != HttpMethod.GET
                     && req.method() != HttpMethod.HEAD) {
-                next.accept(arg);
+                next.accept(req, arg);
             } else if (req.path().equals("/")) {
 
                 req.response().sendFile(
                         String.format("%s%s%s", appRoot, File.separator, indexPage), event -> {
                             if (event.failed()) {
-                                fail.accept(event.cause());
+                                fail.accept(req, event.cause());
                             } else {
-                                next.accept(arg);
+                                next.accept(req, arg);
                             }
                         });
             } else if (!req.path().contains("..")) {
                 String filePath = String.format("%s%s%s", appRoot, File.separator, req.path());
                 req.response().sendFile(filePath, event -> {
                     if (event.failed()) {
-                        fail.accept(event.cause());
+                        fail.accept(req, event.cause());
                     } else {
-                        next.accept(arg);
+                        next.accept(req, arg);
                     }
                 });
             } else {
-                fail.accept(new Exception("404"));
+                fail.accept(req, new Exception("404"));
             }
         };
     }
