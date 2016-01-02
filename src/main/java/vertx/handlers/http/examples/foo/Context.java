@@ -1,28 +1,28 @@
 package vertx.handlers.http.examples.foo;
 
-import vertx.handlers.http.examples.foo.ext.bodyParser.Body;
-import vertx.handlers.http.examples.foo.ext.parameters.Parameters;
+import com.github.spriet2000.vertx.handlers.http.server.ext.bodyParser.Body;
+import com.github.spriet2000.vertx.handlers.http.server.ext.parameters.Parameters;
 
 import java.util.Map;
 
-public class FooContext implements Parameters, Body<FooBar> {
+public class Context implements Parameters, Body<Form> {
 
     private final Map<String, String> parameters;
 
-    private FooBar body;
+    private Form body;
 
-    public FooContext(Map<String, String> parameters) {
+    public Context(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
     @Override
-    public void body(FooBar body) {
+    public void body(Form body) {
 
         this.body = body;
     }
 
     @Override
-    public FooBar body() {
+    public Form body() {
 
         return this.body;
     }

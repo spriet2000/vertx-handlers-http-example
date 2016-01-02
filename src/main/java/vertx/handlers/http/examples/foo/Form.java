@@ -2,10 +2,10 @@ package vertx.handlers.http.examples.foo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FooBar {
+public class Form {
     public final String foo;
 
-    public FooBar(@JsonProperty("foo") String foo) {
+    public Form(@JsonProperty("foo") String foo) {
         this.foo = foo;
     }
 }

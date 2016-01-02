@@ -8,26 +8,28 @@ Static website with simple form processing.
 
 Router router = router();
 
-BiHandlers<HttpServerRequest, FooContext> common = compose(
+BiHandlers<HttpServerRequest, Context> common = compose(
         new ExceptionHandler<>(),
-        new TimeOutHandler<>(vertx),
+        new TimeoutHandler<>(vertx),
         new LogHandler<>(),
         new ResponseTimeHandler<>());
 
-BiConsumer<HttpServerRequest, FooContext> statik = new BiHandlers<>(common)
-        .andThen(new Statik("/app"))
-        .apply(new ErrorHandler(), new SuccessHandler<>());
+String appFolder =  String.format("%s%s", System.getProperty("vertx.cwd"), "/app");
+
+BiConsumer<HttpServerRequest, Context> statik = new BiHandlers<>(common)
+        .andThen(new StatikFileHandler<>(appFolder))
+        .apply(new Error(), new Success<>());
 
 router.get("/*filepath", (req, params) -> {
     statik.accept(req, null);
 });
 
-BiConsumer<HttpServerRequest, FooContext> bodyParser = compose(common)
-        .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
-        .apply(new ErrorHandler(), new SuccessHandler<>());
+BiConsumer<HttpServerRequest, Context> bodyParser = compose(common)
+        .andThen(new JsonBodyParser(Form.class), new FormHandler())
+        .apply(new Error(), new Success<>());
 
 router.post("/foobar", (req, params) -> {
-    bodyParser.accept(req, new FooContext(params));
+    bodyParser.accept(req, new Context(params));
 });
 
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))

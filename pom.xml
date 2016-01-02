@@ -148,7 +148,7 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Main-Class>
-                                            vertx.handlers.http.examples.foo.FooVerticle
+                                            vertx.handlers.http.examples.foo.Server
                                         </Main-Class>
                                     </manifestEntries>
                                 </transformer>

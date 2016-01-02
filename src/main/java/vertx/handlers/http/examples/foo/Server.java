@@ -1,29 +1,29 @@
 package vertx.handlers.http.examples.foo;
 
 import com.github.spriet2000.handlers.BiHandlers;
+import com.github.spriet2000.vertx.handlers.http.server.ext.bodyParser.impl.JsonBodyParser;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ExceptionHandler;
+import com.github.spriet2000.vertx.handlers.http.server.ext.impl.LogHandler;
 import com.github.spriet2000.vertx.handlers.http.server.ext.impl.ResponseTimeHandler;
-import com.github.spriet2000.vertx.handlers.http.server.ext.impl.TimeOutHandler;
+import com.github.spriet2000.vertx.handlers.http.server.ext.statik.impl.StatikFileHandler;
+import com.github.spriet2000.vertx.handlers.http.server.ext.timeout.impl.TimeoutHandler;
+import com.github.spriet2000.vertx.handlers.http.server.utils.Runner;
 import com.github.spriet2000.vertx.httprouter.Router;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
-import vertx.handlers.http.examples.foo.ext.bodyParser.impl.JsonBodyParser;
-import vertx.handlers.http.examples.foo.ext.error.impl.ErrorHandler;
-import vertx.handlers.http.examples.foo.ext.log.impl.LogHandler;
-import vertx.handlers.http.examples.foo.ext.statik.impl.Statik;
-import vertx.handlers.http.examples.foo.ext.success.impl.SuccessHandler;
+
 
 import java.util.function.BiConsumer;
 
 import static com.github.spriet2000.handlers.BiHandlers.compose;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
-public class FooVerticle extends AbstractVerticle {
+public class Server extends AbstractVerticle {
 
     public static void main(String[] args) {
-        Runner.run(FooVerticle.class, new VertxOptions());
+        Runner.run(Server.class, new VertxOptions());
     }
 
     @Override
@@ -31,26 +31,28 @@ public class FooVerticle extends AbstractVerticle {
 
         Router router = router();
 
-        BiHandlers<HttpServerRequest, FooContext> common = compose(
+        BiHandlers<HttpServerRequest, Context> common = compose(
                 new ExceptionHandler<>(),
-                new TimeOutHandler<>(vertx),
+                new TimeoutHandler<>(vertx),
                 new LogHandler<>(),
                 new ResponseTimeHandler<>());
 
-        BiConsumer<HttpServerRequest, FooContext> statik = new BiHandlers<>(common)
-                .andThen(new Statik("/app"))
-                .apply(new ErrorHandler(), new SuccessHandler<>());
+        String appFolder =  String.format("%s%s", System.getProperty("vertx.cwd"), "/app");
+
+        BiConsumer<HttpServerRequest, Context> statik = new BiHandlers<>(common)
+                .andThen(new StatikFileHandler<>(appFolder))
+                .apply(new Error(), new Success<>());
 
         router.get("/*filepath", (req, params) -> {
             statik.accept(req, null);
         });
 
-        BiConsumer<HttpServerRequest, FooContext> bodyParser = compose(common)
-                .andThen(new JsonBodyParser(FooBar.class), new FooFormHandler())
-                .apply(new ErrorHandler(), new SuccessHandler<>());
+        BiConsumer<HttpServerRequest, Context> bodyParser = compose(common)
+                .andThen(new JsonBodyParser(Form.class), new FormHandler())
+                .apply(new Error(), new Success<>());
 
         router.post("/foobar", (req, params) -> {
-            bodyParser.accept(req, new FooContext(params));
+            bodyParser.accept(req, new Context(params));
         });
 
         vertx.createHttpServer(new HttpServerOptions().setPort(8080))
