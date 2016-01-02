@@ -2,6 +2,7 @@ package vertx.handlers.http.examples.foo;
 
 import com.github.spriet2000.vertx.handlers.http.server.ext.bodyParser.Body;
 import com.github.spriet2000.vertx.handlers.http.server.ext.parameters.Parameters;
+import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
 
@@ -31,4 +32,6 @@ public class Context implements Parameters, Body<Form> {
     public Map<String, String> parameters() {
         return parameters;
     }
+
+
 }

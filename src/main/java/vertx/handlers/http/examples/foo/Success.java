@@ -1,5 +1,6 @@
 package vertx.handlers.http.examples.foo;
 
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -12,9 +13,6 @@ public class Success<A> implements BiConsumer<HttpServerRequest, A> {
 
     @Override
     public void accept(HttpServerRequest req, A throwable) {
-        if (req != null && !req.isEnded()) {
-            req.response().end();
-        }
         logger.info(String.format("Success %s %s \n", req.uri(), req.method()));
     }
 }

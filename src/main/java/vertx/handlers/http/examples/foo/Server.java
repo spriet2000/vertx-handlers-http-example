@@ -34,8 +34,7 @@ public class Server extends AbstractVerticle {
         BiHandlers<HttpServerRequest, Context> common = compose(
                 new ExceptionHandler<>(),
                 new TimeoutHandler<>(vertx),
-                new LogHandler<>(),
-                new ResponseTimeHandler<>());
+                new LogHandler<>());
 
         String appFolder =  String.format("%s%s", System.getProperty("vertx.cwd"), "/app");
 
