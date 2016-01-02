@@ -41,7 +41,7 @@ public class Server extends AbstractVerticle {
 
         BiConsumer<HttpServerRequest, Context> statik = new BiHandlers<>(common)
                 .andThen(new StatikFileHandler<>(appFolder))
-                .apply(new Error(), new Success());
+                .apply(new Error(), new Success<>());
 
         router.get("/*filepath", (req, params) -> {
             statik.accept(req, new Context(params));
@@ -49,7 +49,7 @@ public class Server extends AbstractVerticle {
 
         BiConsumer<HttpServerRequest, Context> bodyParser = compose(common)
                 .andThen(new JsonBodyParser(Form.class), new FormHandler())
-                .apply(new Error(), new Success());
+                .apply(new Error(), new Success<>());
 
         router.post("/foobar", (req, params) -> {
             bodyParser.accept(req, new Context(params));

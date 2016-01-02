@@ -21,7 +21,7 @@ BiConsumer<HttpServerRequest, Context> statik = new BiHandlers<>(common)
         .apply(new Error(), new Success<>());
 
 router.get("/*filepath", (req, params) -> {
-    statik.accept(req, null);
+    statik.accept(req, new Context(params));
 });
 
 BiConsumer<HttpServerRequest, Context> bodyParser = compose(common)
@@ -33,7 +33,9 @@ router.post("/foobar", (req, params) -> {
 });
 
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))
-        .requestHandler(router).listen();
+        .requestHandler(router)
+        .listen();
+
                 
 ```
 

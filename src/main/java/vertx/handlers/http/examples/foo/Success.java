@@ -6,12 +6,12 @@ import io.vertx.core.logging.LoggerFactory;
 
 import java.util.function.BiConsumer;
 
-public class Success implements BiConsumer<HttpServerRequest, Object> {
+public class Success<A> implements BiConsumer<HttpServerRequest, A> {
 
     Logger logger = LoggerFactory.getLogger(Success.class);
 
     @Override
-    public void accept(HttpServerRequest req, Object arg) {
+    public void accept(HttpServerRequest req, A throwable) {
         if (req != null && !req.isEnded()) {
             req.response().end();
         }
