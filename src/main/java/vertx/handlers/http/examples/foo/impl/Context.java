@@ -1,8 +1,8 @@
-package vertx.handlers.http.examples.foo;
+package vertx.handlers.http.examples.foo.impl;
 
-import com.github.spriet2000.vertx.handlers.http.server.ext.bodyParser.Body;
-import com.github.spriet2000.vertx.handlers.http.server.ext.parameters.Parameters;
-import io.vertx.core.buffer.Buffer;
+
+import com.github.spriet2000.vertx.handlers.extensions.bodyParser.Body;
+import vertx.handlers.http.examples.foo.Parameters;
 
 import java.util.Map;
 
@@ -32,6 +32,4 @@ public class Context implements Parameters, Body<Form> {
     public Map<String, String> parameters() {
         return parameters;
     }
-
-
 }

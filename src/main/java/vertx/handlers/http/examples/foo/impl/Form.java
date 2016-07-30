@@ -1,4 +1,4 @@
-package vertx.handlers.http.examples.foo;
+package vertx.handlers.http.examples.foo.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

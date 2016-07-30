@@ -1,7 +1,8 @@
-package vertx.handlers.http.examples.foo;
+package vertx.handlers.http.examples.foo.impl;
 
 
 import io.vertx.core.http.HttpServerRequest;
+import vertx.handlers.http.examples.foo.impl.Context;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
