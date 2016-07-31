@@ -11,18 +11,18 @@ ErrorHandler errorHandler = new ErrorHandler();
 SuccessHandler successHandler = new SuccessHandler();
 
 // common handlers
-ServerRequestHandlers<Context> common = build(
+ServerRequestHandlers<Context> common = use(
         new ExceptionHandler<>(),
         new TimeoutHandler<>(vertx),
         new LogHandler<>());
 
 // handler for static files
-BiConsumer<HttpServerRequest, Context> statik = build(common)
+BiConsumer<HttpServerRequest, Context> statik = use(common)
         .andThen(new StatikFileHandler<>(appFolder))
         .apply(errorHandler, successHandler);
 
 // handler for form processing
-BiConsumer<HttpServerRequest, Context> bodyParser = build(common)
+BiConsumer<HttpServerRequest, Context> bodyParser = use(common)
         .andThen(new JsonBodyParser(Form.class), new FormHandler())
         .apply(errorHandler, successHandler);
 

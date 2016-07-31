@@ -19,7 +19,7 @@ import vertx.handlers.http.examples.foo.utils.Runner;
 
 import java.util.function.BiConsumer;
 
-import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandlers.build;
+import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandlers.use;
 import static com.github.spriet2000.vertx.httprouter.Router.router;
 
 public class App extends AbstractVerticle {
@@ -38,18 +38,18 @@ public class App extends AbstractVerticle {
         SuccessHandler successHandler = new SuccessHandler();
 
         // common handlers
-        ServerRequestHandlers<Context> common = build(
+        ServerRequestHandlers<Context> common = use(
                 new ExceptionHandler<>(),
                 new TimeoutHandler<>(vertx),
                 new LogHandler<>());
 
         // handler for static files
-        BiConsumer<HttpServerRequest, Context> statik = build(common)
+        BiConsumer<HttpServerRequest, Context> statik = use(common)
                 .andThen(new StatikFileHandler<>(appFolder))
                 .apply(errorHandler, successHandler);
 
         // handler for form processing
-        BiConsumer<HttpServerRequest, Context> bodyParser = build(common)
+        BiConsumer<HttpServerRequest, Context> bodyParser = use(common)
                 .andThen(new JsonBodyParser(Form.class), new FormHandler())
                 .apply(errorHandler, successHandler);
 
