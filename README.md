@@ -6,31 +6,34 @@ Static website with simple form processing.
 
 ``` java
 
-Router router = router();
+// define error and success handlers
+ErrorHandler errorHandler = new ErrorHandler();
+SuccessHandler successHandler = new SuccessHandler();
 
+// common handlers
 ServerRequestHandlers<Context> common = build(
         new ExceptionHandler<>(),
         new TimeoutHandler<>(vertx),
         new LogHandler<>());
 
-String appFolder = String.format("%s%s", System.getProperty("vertx.cwd"), "/app");
-
+// handler for static files
 BiConsumer<HttpServerRequest, Context> statik = build(common)
         .andThen(new StatikFileHandler<>(appFolder))
-        .apply(new ErrorResponse(), new SuccessHandler<>());
+        .apply(errorHandler, successHandler);
 
-router.get("/*filepath", (req, params) -> {
-    statik.accept(req, new Context(params));
-});
-
+// handler for form processing
 BiConsumer<HttpServerRequest, Context> bodyParser = build(common)
         .andThen(new JsonBodyParser(Form.class), new FormHandler())
-        .apply(new ErrorResponse(), new SuccessHandler<>());
+        .apply(errorHandler, successHandler);
 
-router.post("/foobar", (req, params) -> {
-    bodyParser.accept(req, new Context(params));
-});
+// setup router
+Router router = router()
+        .get("/*filepath", (req, params) ->
+                statik.accept(req, new Context(params)))
+        .post("/foobar", (req, params) ->
+                bodyParser.accept(req, new Context(params)));
 
+// setup server
 vertx.createHttpServer(new HttpServerOptions().setPort(8080))
         .requestHandler(router)
         .listen();
