@@ -1,7 +1,7 @@
 package vertx.handlers.http.examples.foo.impl;
 
 
-import com.github.spriet2000.vertx.handlers.extensions.bodyParser.Body;
+import com.github.spriet2000.vertx.handlers.http.handlers.bodyParser.Body;
 import vertx.handlers.http.examples.foo.Parameters;
 
 import java.util.Map;
