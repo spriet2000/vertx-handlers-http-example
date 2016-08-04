@@ -1,9 +1,11 @@
 package vertx.handlers.http.examples.handlers.impl;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Date;
 import java.util.function.BiConsumer;
@@ -12,16 +14,22 @@ import java.util.function.BiFunction;
 public class JsHandler<A> implements BiFunction<BiConsumer<HttpServerRequest, Throwable>,
         BiConsumer<HttpServerRequest, A>, BiConsumer<HttpServerRequest, A>> {
 
-    private final ScriptEngine scriptEngine;
+    private final Vertx vertx;
 
-    public JsHandler(ScriptEngine scriptEngine){
+    public JsHandler(Vertx vertx){
 
-        this.scriptEngine = scriptEngine;
+        this.vertx = vertx;
     }
 
     @Override
     public BiConsumer<HttpServerRequest, A> apply(
             BiConsumer<HttpServerRequest, Throwable> fail, BiConsumer<HttpServerRequest, A> next) {
+        ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
+        try {
+            scriptEngine.eval(vertx.fileSystem().readFileBlocking("app.js").toString());
+        } catch (ScriptException ex) {
+            throw new RuntimeException(ex);
+        }
         return (req, arg) -> {
             Date date = new Date();
             try {

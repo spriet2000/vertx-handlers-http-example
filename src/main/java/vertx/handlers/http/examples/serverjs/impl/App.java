@@ -9,14 +9,11 @@ import io.vertx.core.Future;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
+import vertx.handlers.http.examples.Runner;
 import vertx.handlers.http.examples.handlers.impl.ErrorHandler;
 import vertx.handlers.http.examples.handlers.impl.JsHandler;
 import vertx.handlers.http.examples.handlers.impl.SuccessHandler;
-import vertx.handlers.http.examples.Runner;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.util.function.BiConsumer;
 
 import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandlers.use;
@@ -25,7 +22,7 @@ import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandle
 public class App extends AbstractVerticle {
 
     private HttpServer server;
-    private ScriptEngine scriptEngine;
+
 
     public static void main(String[] args) {
         Runner.run(vertx.handlers.http.examples.serverjs.impl.App.class, new VertxOptions());
@@ -33,21 +30,7 @@ public class App extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> future) {
-        scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
-        try {
-            scriptEngine.eval(vertx.fileSystem().readFileBlocking("static/js/nashorn-polyfill.js").toString());
-        } catch (ScriptException ex) {
-            future.fail(ex);
-            return;
-        }
-        vertx.fileSystem().readFile("static/js/app.js", fileResult -> {
-            try {
-                scriptEngine.eval(fileResult.result().toString());
-                app(future);
-            } catch (ScriptException ex) {
-                future.fail(ex);
-            }
-        });
+
     }
 
     @Override
@@ -70,7 +53,7 @@ public class App extends AbstractVerticle {
 
         // js handler
         BiConsumer<HttpServerRequest, Void> jsConsumer = use(common)
-                .andThen(new JsHandler(scriptEngine))
+                .andThen(new JsHandler(vertx))
                 .apply(errorHandler, successHandler);
 
         // setup server
