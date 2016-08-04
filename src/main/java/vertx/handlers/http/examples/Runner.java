@@ -1,4 +1,4 @@
-package vertx.handlers.http.examples.foo.utils;
+package vertx.handlers.http.examples;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 
-public class Runner {
+public abstract class Runner {
 
     public static void run(Class clazz, VertxOptions options) {
         run(Paths.get("").toAbsolutePath().toString(), clazz.getName(), options);

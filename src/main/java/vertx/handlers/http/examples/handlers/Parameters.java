@@ -1,4 +1,4 @@
-package vertx.handlers.http.examples.foo;
+package vertx.handlers.http.examples.handlers;
 
 
 import java.util.Map;

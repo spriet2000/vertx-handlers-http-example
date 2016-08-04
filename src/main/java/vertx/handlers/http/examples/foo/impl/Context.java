@@ -2,30 +2,30 @@ package vertx.handlers.http.examples.foo.impl;
 
 
 import com.github.spriet2000.vertx.handlers.http.handlers.bodyParser.Body;
-import vertx.handlers.http.examples.foo.Parameters;
+import vertx.handlers.http.examples.handlers.Parameters;
 
 import java.util.Map;
 
-public class Context implements Parameters, Body<Form> {
+public class Context implements Parameters, Body<FormData> {
 
     private final Map<String, String> parameters;
 
-    private Form body;
+    private FormData data;
 
-    public Context(Map<String, String> parameters) {
+    Context(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
     @Override
-    public void body(Form body) {
+    public void body(FormData data) {
 
-        this.body = body;
+        this.data = data;
     }
 
     @Override
-    public Form body() {
+    public FormData body() {
 
-        return this.body;
+        return this.data;
     }
 
     @Override

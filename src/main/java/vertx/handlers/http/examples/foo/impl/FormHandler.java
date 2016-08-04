@@ -11,11 +11,10 @@ public class FormHandler implements BiFunction<BiConsumer<HttpServerRequest, Thr
 
     @Override
     public BiConsumer<HttpServerRequest, Context> apply(BiConsumer<HttpServerRequest, Throwable> fail, BiConsumer<HttpServerRequest, Context> next) {
-        return (req, arg) -> {
+        return (req, context) -> {
             req.response().end(String.format("Result from server. \nParsed body to type %s.\nfoo: %s",
-                    arg.getClass().getSimpleName(),
-                    arg.body().foo));
-            next.accept(req, arg);
+                    context.getClass().getSimpleName(), context.body().foo));
+            next.accept(req, context);
         };
     }
 }
