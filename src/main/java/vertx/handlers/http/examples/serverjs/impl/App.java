@@ -8,13 +8,9 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerRequest;
 import vertx.handlers.http.examples.Runner;
 import vertx.handlers.http.examples.handlers.impl.ErrorHandler;
-import vertx.handlers.http.examples.handlers.impl.JsHandler;
 import vertx.handlers.http.examples.handlers.impl.SuccessHandler;
-
-import java.util.function.BiConsumer;
 
 import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandlers.use;
 
@@ -32,6 +28,18 @@ public class App extends AbstractVerticle {
     @Override
     public void start(Future<Void> future) {
 
+        // setup server
+        server = vertx.createHttpServer()
+                .requestHandler(e -> common().andThen(new JsHandler(vertx),
+                        (f, n) -> (req, a) -> {
+                            // js handler, just printing hello world from javascript
+                            req.response().end(a.toString());
+                        })
+                        .apply(errorHandler, successHandler).accept(e, null))
+                .listen(8080);
+
+        // yeps
+        future.complete();
     }
 
     @Override
@@ -40,25 +48,11 @@ public class App extends AbstractVerticle {
         stopFuture.complete();
     }
 
-    private void app(Future<Void> future) {
 
-        // common handlers
-        ServerRequestHandlers<Void> common = use(
+    private ServerRequestHandlers<Object> common(){
+        return use(
                 new ExceptionHandler<>(),
                 new TimeoutHandler<>(vertx),
                 new LogHandler<>());
-
-        // js handler
-        BiConsumer<HttpServerRequest, Void> jsConsumer = use(common)
-                .andThen(new JsHandler(vertx))
-                .apply(errorHandler, successHandler);
-
-        // setup server
-        server = vertx.createHttpServer()
-                .requestHandler(e -> jsConsumer.accept(e, null))
-                .listen(8080);
-
-        // yeps
-        future.complete();
     }
 }

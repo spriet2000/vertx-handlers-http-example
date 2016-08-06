@@ -13,7 +13,7 @@ public class FormHandler implements BiFunction<BiConsumer<HttpServerRequest, Thr
                                                         BiConsumer<HttpServerRequest, Context> next) {
         return (req, context) -> {
             req.response().end(String.format("Result from server. \nParsed body to type %s.\nfoo: %s",
-                    context.getClass().getSimpleName(), context.body().foo));
+                    context.getClass().getSimpleName(), context.getBody().foo));
             next.accept(req, context);
         };
     }

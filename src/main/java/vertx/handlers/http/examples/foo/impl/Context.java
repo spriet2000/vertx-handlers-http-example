@@ -17,13 +17,13 @@ public class Context implements Parameters, Body<FormData> {
     }
 
     @Override
-    public void body(FormData data) {
+    public void setBody(FormData data) {
 
         this.data = data;
     }
 
     @Override
-    public FormData body() {
+    public FormData getBody() {
 
         return this.data;
     }
