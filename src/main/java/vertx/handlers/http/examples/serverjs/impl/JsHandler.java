@@ -21,8 +21,8 @@ public class JsHandler<A> implements BiFunction<BiConsumer<HttpServerRequest, Th
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, A> apply(BiConsumer<HttpServerRequest, Throwable> fail, BiConsumer<HttpServerRequest, A> next) {
-
+    public BiConsumer<HttpServerRequest, A> apply(BiConsumer<HttpServerRequest,
+            Throwable> fail, BiConsumer<HttpServerRequest, A> next) {
         ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
         try {
             scriptEngine.eval(vertx.fileSystem().readFileBlocking(
@@ -34,6 +34,7 @@ public class JsHandler<A> implements BiFunction<BiConsumer<HttpServerRequest, Th
         } catch (ScriptException ex) {
             throw new RuntimeException(ex);
         }
+
         return (req, arg) -> {
             try {
 
