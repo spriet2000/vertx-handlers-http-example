@@ -22,7 +22,8 @@ import static com.github.spriet2000.vertx.handlers.http.impl.ServerRequestHandle
 public class App extends AbstractVerticle {
 
     private HttpServer server;
-
+    private ErrorHandler errorHandler = new ErrorHandler();
+    private SuccessHandler successHandler = new SuccessHandler();
 
     public static void main(String[] args) {
         Runner.run(vertx.handlers.http.examples.serverjs.impl.App.class, new VertxOptions());
@@ -40,10 +41,6 @@ public class App extends AbstractVerticle {
     }
 
     private void app(Future<Void> future) {
-
-        // define error and success handlers
-        ErrorHandler errorHandler = new ErrorHandler();
-        SuccessHandler successHandler = new SuccessHandler();
 
         // common handlers
         ServerRequestHandlers<Void> common = use(

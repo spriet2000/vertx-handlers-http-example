@@ -29,7 +29,7 @@ public class Context implements Parameters, Body<FormData> {
     }
 
     @Override
-    public Map<String, String> parameters() {
+    public Map<String, String> getParameters() {
         return parameters;
     }
 }

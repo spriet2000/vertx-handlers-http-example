@@ -16,14 +16,14 @@ public class JsHandler<A> implements BiFunction<BiConsumer<HttpServerRequest, Th
 
     private final Vertx vertx;
 
-    public JsHandler(Vertx vertx){
+    public JsHandler(Vertx vertx) {
 
         this.vertx = vertx;
     }
 
     @Override
-    public BiConsumer<HttpServerRequest, A> apply(
-            BiConsumer<HttpServerRequest, Throwable> fail, BiConsumer<HttpServerRequest, A> next) {
+    public BiConsumer<HttpServerRequest, A> apply(BiConsumer<HttpServerRequest, Throwable> fail, BiConsumer<HttpServerRequest, A> next) {
+
         ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
         try {
             scriptEngine.eval(vertx.fileSystem().readFileBlocking("app.js").toString());
